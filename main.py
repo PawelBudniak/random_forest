@@ -2,6 +2,7 @@ import load_mnist
 import Tree
 import matplotlib.pyplot as plt
 import numpy as np
+import random_forest
 
 
 def display_image(pixels):
@@ -10,19 +11,34 @@ def display_image(pixels):
     plt.show()
 
 
+
 if __name__ == '__main__':
 
     START = 0
-    N_TRAIN = 10000
+    N_TRAIN = 4000
     STOP = START+N_TRAIN
     N_TEST = N_TRAIN // 6
     images, labels = load_mnist.load_mnist('data/train-images.idx3-ubyte', 'data/train-labels.idx1-ubyte')
     s_images = images[START:STOP]
     s_labels = labels[START:STOP]
-    tree = Tree.Tree(s_images, s_labels)
 
-    print(" predict: ", tree.predict(images[START + 1]))
-    print(" actual: ", labels[START + 1])
+    tree = random_forest.Forest(s_images, s_labels, n_trees=40, training_size=0.8, n_features=1.0)
+
+
+
+    # tree = Tree.Tree(s_images, s_labels)
+    #
+    # print(" predict: ", tree.predict(images[START + 1]))
+    # print(" actual: ", labels[START + 1])
+    #
+
+    #
+    # # s_images[s_images < 50] = 0
+    # # s_images[s_images >= 50] = 1
+    # #
+    # #
+    # # np.savetxt('imgs.csv', s_images.astype(int), fmt='%i', delimiter=',')
+    # # np.savetxt('labels.csv', s_labels.astype(int), fmt='%i', delimiter=',')
 
     train_correct = 0
     for i in range(START, STOP):
@@ -33,18 +49,11 @@ if __name__ == '__main__':
         if tree.predict(images[i]) == labels[i]:
             test_correct += 1
 
-    # s_images[s_images < 50] = 0
-    # s_images[s_images >= 50] = 1
-    #
-    #
-    # np.savetxt('imgs.csv', s_images.astype(int), fmt='%i', delimiter=',')
-    # np.savetxt('labels.csv', s_labels.astype(int), fmt='%i', delimiter=',')
-
     print("train error:", 1 - train_correct / N_TRAIN)
     print("test error: ", 1 - test_correct / N_TEST)
 
     while True:
         which = int(input("Which img do you want to classify?: "))
-        print(" predict: ", tree.predict(images[which]))
+        print(" predict: ", tree.predict(images[which], verbose=True))
         print(" actual: ", labels[which])
         display_image(images[which])

@@ -13,9 +13,9 @@ def entropy(counts):
 
 class Tree:
 
-    def __init__(self, data, labels):
+    def __init__(self, data, labels, features):
         self.data = data
-        self.features = set(range(data.shape[1]))  # each column represents one pixel - one feature
+        self.features = features  # each column represents one pixel - one feature
         self.labels = labels
 
         self.root = self.id3(labels, self.features, data)
@@ -51,6 +51,7 @@ class Tree:
             non_empty = [i for i in range(len(split)) if len(split[i]) > 0]
             split = split[non_empty]
             thresholds = thresholds[non_empty]
+            # if there is only one non-empty subset, the threshold to enter it is math.inf
             if len(thresholds) == 1:
                 thresholds[0] = math.inf
 
@@ -98,12 +99,12 @@ class Tree:
 
         # if the best split contains only one non-empty bucket, return a leaf
         # idk about this
-        # if len(best_split) == 1:
-        #     most_common_label = label_counts.most_common(1)[0][0]
-        #     return TreeNode(label=most_common_label)
+        if len(best_split) == 1:
+            most_common_label = label_counts.most_common(1)[0][0]
+            return TreeNode(label=most_common_label)
 
         features.remove(best_feature)
-        node = TreeNode(feature=best_feature, children=list(), thresholds=best_thresholds)
+        node = TreeNode(children=list(), feature=best_feature, thresholds=best_thresholds)
 
         for i, subset_ids in enumerate(best_split):
             data_subset = data[subset_ids]
@@ -131,7 +132,7 @@ class Tree:
 
 
 class TreeNode:
-    def __init__(self, children=None, feature=None, thresholds=None, label=None):
+    def __init__(self, *, children=None, feature=None, thresholds=None, label=None):
         self.children = children
         self.label = label
         self.feature = feature
