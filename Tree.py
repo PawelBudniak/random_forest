@@ -3,11 +3,13 @@ from collections import Counter
 from collections import namedtuple
 import math
 import statistics
+import copy
 
 
 def entropy(counts):
     total = sum(counts)
-    return sum(-count/total * math.log(count/total) for count in counts)
+    return sum(-count / total * math.log(count / total) for count in counts)
+
 
 class Tree:
 
@@ -18,7 +20,7 @@ class Tree:
 
         self.root = self.id3(labels, self.features, data)
 
-    def best_split(self, labels, feature, data, choice_method='mean', thresholds = None):
+    def best_split(self, labels, feature, data, choice_method='mean', thresholds=None):
         """
 
         :param labels: data labels
@@ -29,34 +31,39 @@ class Tree:
         :param thresholds: Iterable -> int
                if choice_method = 'thresholds', they can be specified in this parameter
 
-        :return: tuple(int): thresholds, tuple(np.array): indexes_of_data_split_on_thresholds
-                last threshold is always math.inf
+        :return: tuple(float): thresholds, last threshold is always math.inf
+                ,tuple(np.array): indexes_of_data_split_on_thresholds
+
 
         """
 
         if choice_method == 'mean':
-            #threshold = statistics.mean(data[:, feature])
-            threshold = 80
-            #data_less = data[data[:, feature] < threshold]
-            #data_gte = data[data[:, feature] >= threshold]
+            # threshold = statistics.mean(data[:, feature])
+            threshold = 50
+
             idx_data_less = np.where(data[:, feature] < threshold)[0]
             idx_data_gte = np.where(data[:, feature] >= threshold)[0]
 
-            thresholds = (threshold, math.inf)
-            split = (idx_data_less, idx_data_gte)
-            result = zip(thresholds, split)
-            # filter empty subsets
-            result = tuple(filter(lambda x: x[1].size > 0, result))
+            thresholds = np.array([threshold, math.inf])
+            split = np.array([idx_data_less, idx_data_gte])
 
-            return result
+            # find non-empty subsets
+            non_empty = [i for i in range(len(split)) if len(split[i]) > 0]
+            split = split[non_empty]
+            thresholds = thresholds[non_empty]
+            if len(thresholds) == 1:
+                thresholds[0] = math.inf
+
+            return thresholds, split
 
     def id3(self, labels, features, data):
 
+        features = copy.copy(features)
         label_counts = Counter(labels)
 
         # if there's only one label left in the set, return a leaf with that label
         if len(label_counts) == 1:
-            return TreeNode(label=list(label_counts)[0])
+            return TreeNode(label=labels[0])
 
         if len(features) == 0:
             most_common_label = label_counts.most_common(1)[0][0]
@@ -67,25 +74,27 @@ class Tree:
         best_feature = None
         best_split = None
         best_inf_gain = 0.0
+        best_thresholds = None
 
         # find the best attribute to split on
 
         for feature in features:
             # thresholds, split = self.best_split(labels, feature, data, 'mean')
-            split = self.best_split(labels, feature, data, 'mean')
+            thresholds, split = self.best_split(labels, feature, data, 'mean')
             inf = 0.0
-            for subset in split:
-                subset_ids = subset[1]
-                proportion = len(split)/data.shape[0]
+            for subset_ids in split:
+                proportion = len(subset_ids) / data.shape[0]
                 subset_label_counts = Counter(labels[subset_ids])
                 subset_entropy = entropy(subset_label_counts.values())
                 inf += proportion * subset_entropy
 
-            inf_gain = data_entropy - subset_entropy
+            inf_gain = data_entropy - inf
+
             if inf_gain >= best_inf_gain:
                 best_inf_gain = inf_gain
                 best_feature = feature
                 best_split = split
+                best_thresholds = thresholds
 
         # if the best split contains only one non-empty bucket, return a leaf
         # idk about this
@@ -93,31 +102,14 @@ class Tree:
         #     most_common_label = label_counts.most_common(1)[0][0]
         #     return TreeNode(label=most_common_label)
 
-
         features.remove(best_feature)
-        node = TreeNode(feature=best_feature, children=list(), thresholds=list())
+        node = TreeNode(feature=best_feature, children=list(), thresholds=best_thresholds)
 
-
-        # idk about this either
-        if len(best_split) == 1:
-            subset_ids = subset[1]
-
+        for i, subset_ids in enumerate(best_split):
             data_subset = data[subset_ids]
             labels_subset = labels[subset_ids]
 
             node.new_child(self.id3(labels_subset, features, data_subset))
-            node.thresholds.append(math.inf)
-            return node
-
-        for i, subset in enumerate(best_split):
-
-            subset_ids = subset[1]
-
-            data_subset = data[subset_ids]
-            labels_subset = labels[subset_ids]
-
-            node.new_child(self.id3(labels_subset, features, data_subset))
-            node.thresholds.append(subset[0])
 
         return node
 
@@ -135,23 +127,7 @@ class Tree:
 
         # # if feature_val doesn't satisfy any thresholds it means it's in the last child
         # # e.g if it's a binary split on threshold = 3, a value 5 will be in the second child
-        # return self.predict(input, node.children[-1])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        # return self.predict(input, node.children[-1]
 
 
 class TreeNode:
