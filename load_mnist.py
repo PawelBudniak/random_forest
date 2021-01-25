@@ -38,7 +38,7 @@ def load_mnist(images_path, labels_path, byte_order='big'):
         labels = fp.read()
 
     n_labels = n_images
-    L_OFFSET = 4
+    L_OFFSET = 8
     labels_array = np.array(list(labels[L_OFFSET: n_labels + L_OFFSET]))
 
     return images_array, labels_array

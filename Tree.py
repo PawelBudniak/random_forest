@@ -33,8 +33,10 @@ class Tree:
                 last threshold is always math.inf
 
         """
+
         if choice_method == 'mean':
-            threshold = statistics.mean(data[:, feature])
+            #threshold = statistics.mean(data[:, feature])
+            threshold = 80
             #data_less = data[data[:, feature] < threshold]
             #data_gte = data[data[:, feature] >= threshold]
             idx_data_less = np.where(data[:, feature] < threshold)[0]
@@ -43,9 +45,8 @@ class Tree:
             thresholds = (threshold, math.inf)
             split = (idx_data_less, idx_data_gte)
             result = zip(thresholds, split)
-            # filter empty buckets
+            # filter empty subsets
             result = tuple(filter(lambda x: x[1].size > 0, result))
-
 
             return result
 
@@ -87,12 +88,26 @@ class Tree:
                 best_split = split
 
         # if the best split contains only one non-empty bucket, return a leaf
-        if len(best_split) == 1:
-            most_common_label = label_counts.most_common(1)[0][0]
-            return TreeNode(most_common_label)
+        # idk about this
+        # if len(best_split) == 1:
+        #     most_common_label = label_counts.most_common(1)[0][0]
+        #     return TreeNode(label=most_common_label)
 
-        node = TreeNode(feature=best_feature, children=list(), thresholds=list())
+
         features.remove(best_feature)
+        node = TreeNode(feature=best_feature, children=list(), thresholds=list())
+
+
+        # idk about this either
+        if len(best_split) == 1:
+            subset_ids = subset[1]
+
+            data_subset = data[subset_ids]
+            labels_subset = labels[subset_ids]
+
+            node.new_child(self.id3(labels_subset, features, data_subset))
+            node.thresholds.append(math.inf)
+            return node
 
         for i, subset in enumerate(best_split):
 
