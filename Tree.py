@@ -12,19 +12,26 @@ def entropy(counts):
 
 
 class Tree:
-
     SPLIT_METHODS = {'mean', 'thresholds'}
 
-    def __init__(self, data, labels, *, features=None, split_method='mean', thresholds=None):
+    def __init__(self, data, labels, *, features=None, split_method='mean', thresholds=None, max_features=None):
         """
               Mandatory args:
+              :param data: training data
               :param labels: data labels
+
+              Optional kwargs:
               :param features: default=None
                      data features, if not specified they are computed as: set(range(data.shape[1]))
-              Optional kwargs:
-              :param data: training data
               :param split_method: {'mean','thresholds'}, default = 'mean'
-                     how to split the data, if 'thresholds' chosen, the thresholds must be set in param thresholds
+                     how to split the nodes, if 'thresholds' chosen, the thresholds must be set in param thresholds
+              :param thresholds: Iterable(float): default=None
+                     thresholds used to split the nodes
+              :param max_features: {'sqrt'}, default=None
+                     if 'sqrt' -  max_features = sqrt(n_features)
+                     if None   -  max_features = n_features
+                     consider only up to max_features when searching for the best split
+                     except if no valid split has been found, then the search continues
 
               """
         # self.data = data
@@ -44,6 +51,11 @@ class Tree:
             # last threshold must be math inf
             if self.thresholds[-1] != math.inf:
                 self.thresholds.append(math.inf)
+
+        if max_features =='sqrt':
+            self.max_features = math.sqrt(len(features))
+        elif max_features is None:
+            self.max_features = len(features)
 
         self.root = self.id3(labels, features, data)
 
@@ -76,8 +88,8 @@ class Tree:
             thresholds = np.array(self.thresholds)
             split = []
             for i, value in enumerate(thresholds):
-                prev_value = thresholds[i-1] if i != 0 else -math.inf
-                indices = np.where( (value > data[:, feature]) & (data[:, feature] >= prev_value) )[0]
+                prev_value = thresholds[i - 1] if i != 0 else -math.inf
+                indices = np.where((value > data[:, feature]) & (data[:, feature] >= prev_value))[0]
                 split.append(indices)
             split = np.array(split)
 
@@ -112,7 +124,7 @@ class Tree:
 
         # find the best attribute to split on
 
-        for feature in features:
+        for i, feature in enumerate(features):
             # thresholds, split = self.best_split(labels, feature, data, 'mean')
             thresholds, split = self.best_split(labels, feature, data, self.split_method)
             inf = 0.0
@@ -129,6 +141,11 @@ class Tree:
                 best_feature = feature
                 best_split = split
                 best_thresholds = thresholds
+
+            # consider only up to max_features when searching for the best split
+            # except if no valid split has been found, then the search continues
+            if i > self.max_features and len(best_thresholds) > 1:
+                break
 
         # if the best split contains only one non-empty bucket, return a leaf
         # idk about this
