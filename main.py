@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
 
     START = 0
-    N_TRAIN = 2000
+    N_TRAIN = 1000
     STOP = START + N_TRAIN
     N_TEST = N_TRAIN // 6
     images, labels = load_mnist.load_mnist(TRAIN_IMG_PATH, TRAIN_LABEL_PATH)
@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
     # tree = random_forest.Forest(s_images, s_labels, n_trees=1, training_size=0.8, n_features=0.9, split_method='thresholds', thresholds=[50])
 
-    tree = Tree.Tree(data=s_images, labels=s_labels, split_method='thresholds', thresholds=[20, 60])
+    tree = Tree.Tree(data=s_images, labels=s_labels, split_method='thresholds', thresholds=[50])
 
     #
     # # s_images[s_images < 50] = 0
