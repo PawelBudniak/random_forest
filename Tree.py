@@ -44,6 +44,8 @@ class Tree:
 
         self.root = self.id3(labels, features, data)
 
+        self.c45(data, labels, self.root)
+
     def best_split(self, labels, feature, data, split_method='mean'):
         """
 
@@ -164,10 +166,9 @@ class Tree:
         # return self.predict(input, node.children[-1]
 
     def c45(self, data, labels, node, filtered_ids=None):
-
         # if root of the tree or subtree
         if filtered_ids is None:
-            px_thresholds = []
+            filtered_ids = []
 
         # if node is a leaf
         if node.label is not None:
@@ -176,12 +177,9 @@ class Tree:
         # error values
         for child, threshold in zip(node.children, node.thresholds):
             new_ids = np.where(data[:, child.feature] < threshold)[0]
-
-            filtered_ids.extend(new_ids)
             filtered_ids[len(filtered_ids):] = new_ids
 
-            px_thresholds[node.feature] = threshold
-            self.c45(data, labels, child, px_thresholds)
+            self.c45(data, labels, child, filtered_ids)
 
             test_data = data[new_ids]
             test_labels = labels[new_ids]
@@ -189,7 +187,30 @@ class Tree:
             if len(new_ids) > 0:
                 del filtered_ids[-len(new_ids):]
 
-            subtree_error = test.error_rate(node)
+        # calculate subtree error
+        st_err = test.error_rate(data, labels, node)
+
+        subtree_error = st_err + pow(st_err*(1-st_err), 0.5)/len(labels)
+
+        # find most common label
+        label_counts = Counter(labels) # .most_common(0)[0][0]
+        best_label = label_counts.most_common()[0][0]
+
+        lf_err = label_counts[best_label] / len(labels)
+
+        leaf_error = lf_err + pow(lf_err*(1-lf_err), 0.5)/len(labels)
+
+        if subtree_error >= leaf_error:
+            node = TreeNode(label=best_label)
+        print("hej\n")
+        return
+
+             # leaf_ids = np.where(labels == best_label)[0]
+
+
+
+
+
 
 
 
