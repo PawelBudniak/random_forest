@@ -5,7 +5,8 @@ from collections import Counter
 
 
 class Forest:
-    def __init__(self, data, labels, *, n_trees=10, training_size=1.0, n_features=1.0):
+    def __init__(self, data, labels, *, n_trees=10, training_size=1.0, n_features=1.0,
+                 split_method='mean', thresholds=None):
 
         if isinstance(n_features, float):
             n_features = int(n_features * data.shape[1])
@@ -20,11 +21,12 @@ class Forest:
 
             # generate random feature subset without replacement
             # n_features = math.floor(math.sqrt(squared_n_features))
-            feature_ids = sorted(np.random.choice(data.shape[1], size=n_features, replace=False))
+            feature_ids = np.random.choice(data.shape[1], size=n_features, replace=False)
             # training_set = training_set[:, feature_ids]
             labels_subset = labels[training_ids]
 
-            new_tree = Tree.Tree(data=training_set, labels=labels_subset, features=set(feature_ids))
+            new_tree = Tree.Tree(data=training_set, labels=labels_subset, features=set(feature_ids),
+                                 split_method=split_method, thresholds=thresholds)
             self.trees.append(new_tree)
 
     def predict(self, input, verbose=False):

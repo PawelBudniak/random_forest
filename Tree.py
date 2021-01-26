@@ -27,11 +27,11 @@ class Tree:
                      how to split the data, if 'thresholds' chosen, the thresholds must be set in param thresholds
 
               """
-        self.data = data
-        self.features = features
+        # self.data = data
+        # self.features = features
         if features is None:
-            self.features = set(range(data.shape[1]))  # each column represents one pixel - one feature
-        self.labels = labels
+            features = set(range(data.shape[1]))  # each column represents one pixel - one feature
+        # self.labels = labels
 
         if split_method not in self.SPLIT_METHODS:
             raise ValueError('Possible split methods: ', self.SPLIT_METHODS)
@@ -45,7 +45,7 @@ class Tree:
             if self.thresholds[-1] != math.inf:
                 self.thresholds.append(math.inf)
 
-        self.root = self.id3(labels, self.features, data)
+        self.root = self.id3(labels, features, data)
 
     def best_split(self, labels, feature, data, split_method='mean'):
         """
@@ -56,8 +56,8 @@ class Tree:
         :param split_method: {'mean','thresholds'}, default = 'mean'
                how to split the data, if 'thresholds' chosen, they can be set in param thresholds
 
-        :return: tuple(float): thresholds, last threshold is always math.inf
-                ,tuple(np.array): indexes_of_data_split_on_thresholds
+        :return: np.array(float): thresholds, last threshold is always math.inf
+                ,np.array(np.array): indices of data split on thresholds
 
 
         """
@@ -93,7 +93,6 @@ class Tree:
 
     def id3(self, labels, features, data):
 
-        features = copy.copy(features)
         label_counts = Counter(labels)
 
         # if there's only one label left in the set, return a leaf with that label
@@ -145,6 +144,9 @@ class Tree:
             labels_subset = labels[subset_ids]
 
             node.new_child(self.id3(labels_subset, features, data_subset))
+
+        # undo best_feature remove, so the higher branches can still use it
+        features.add(best_feature)
 
         return node
 

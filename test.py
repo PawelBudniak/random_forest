@@ -21,7 +21,7 @@ def k_fold_validation(data, labels, k, model_constructor, *model_args, **model_k
     return mean(errors)
 
 
-def k_fold_model_error(data, labels, k, model_constructor, *model_args, **model_kwargs):
+def k_fold_model_and_error(data, labels, k, model_constructor, *model_args, **model_kwargs):
     """
     :return: tuple(model_constructor: model, float: error)
             model: model trained on the entire dataset
