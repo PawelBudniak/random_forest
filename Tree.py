@@ -4,6 +4,7 @@ from collections import namedtuple
 import math
 import statistics
 import copy
+import test
 
 
 def entropy(counts):
@@ -12,7 +13,6 @@ def entropy(counts):
 
 
 class Tree:
-
     SPLIT_METHODS = {'mean', 'thresholds'}
 
     def __init__(self, data, labels, *, features=None, split_method='mean', thresholds=None):
@@ -27,11 +27,8 @@ class Tree:
                      how to split the data, if 'thresholds' chosen, the thresholds must be set in param thresholds
 
               """
-        # self.data = data
-        # self.features = features
         if features is None:
             features = set(range(data.shape[1]))  # each column represents one pixel - one feature
-        # self.labels = labels
 
         if split_method not in self.SPLIT_METHODS:
             raise ValueError('Possible split methods: ', self.SPLIT_METHODS)
@@ -76,8 +73,8 @@ class Tree:
             thresholds = np.array(self.thresholds)
             split = []
             for i, value in enumerate(thresholds):
-                prev_value = thresholds[i-1] if i != 0 else -math.inf
-                indices = np.where( (value > data[:, feature]) & (data[:, feature] >= prev_value) )[0]
+                prev_value = thresholds[i - 1] if i != 0 else -math.inf
+                indices = np.where((value > data[:, feature]) & (data[:, feature] >= prev_value))[0]
                 split.append(indices)
             split = np.array(split)
 
@@ -166,6 +163,37 @@ class Tree:
         # # e.g if it's a binary split on threshold = 3, a value 5 will be in the second child
         # return self.predict(input, node.children[-1]
 
+    def c45(self, data, labels, node, filtered_ids=None):
+
+        # if root of the tree or subtree
+        if filtered_ids is None:
+            px_thresholds = []
+
+        # if node is a leaf
+        if node.label is not None:
+            return
+
+        # error values
+        for child, threshold in zip(node.children, node.thresholds):
+            new_ids = np.where(data[:, child.feature] < threshold)[0]
+
+            filtered_ids.extend(new_ids)
+            filtered_ids[len(filtered_ids):] = new_ids
+
+            px_thresholds[node.feature] = threshold
+            self.c45(data, labels, child, px_thresholds)
+
+            test_data = data[new_ids]
+            test_labels = labels[new_ids]
+
+            if len(new_ids) > 0:
+                del filtered_ids[-len(new_ids):]
+
+            subtree_error = test.error_rate(node)
+
+
+
+
 
 class TreeNode:
     def __init__(self, *, children=None, feature=None, thresholds=None, label=None):
@@ -176,3 +204,15 @@ class TreeNode:
 
     def new_child(self, child):
         self.children.append(child)
+
+    def predict(self, input, node=None):
+        if node is None:
+            node = self
+
+        if node.label is not None:
+            return node.label
+
+        feature_val = input[node.feature]
+        for i, threshold in enumerate(node.thresholds):
+            if feature_val < threshold:
+                return self.predict(input, node.children[i])
