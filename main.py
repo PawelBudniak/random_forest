@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random_forest
 import test
+from collections import Counter
 
 
 def display_image(pixels):
@@ -17,9 +18,8 @@ if __name__ == '__main__':
     TRAIN_IMG_PATH, TRAIN_LABEL_PATH = 'data/train-images.idx3-ubyte', 'data/train-labels.idx1-ubyte'
     TEST_IMG_PATH, TEST_LABEL_PATH = 'data/t10k-images.idx3-ubyte', 'data/t10k-labels.idx1-ubyte'
 
-
     START = 0
-    N_TRAIN = 10000
+    N_TRAIN = 20000
     STOP = START + N_TRAIN
     N_TEST = N_TRAIN // 6
     images, labels = load_mnist.load_mnist(TRAIN_IMG_PATH, TRAIN_LABEL_PATH)
@@ -30,8 +30,15 @@ if __name__ == '__main__':
     test_labels = labels[STOP: STOP + N_TEST]
 
     # test.k_fold_validation(s_images, s_labels, 4, random_forest.Forest)
+    # fts = set(range(images.shape[1]))
+    # print('before: ', len(fts))
+    # fts = Tree.remove_useless_features(images, fts, epsilon=0.005)
+    # print('after: ', len(fts))
+    # exit(1)
 
-    tree = random_forest.Forest(s_images, s_labels, n_trees=30, training_size=0.8, n_features=1.0, split_method='thresholds', thresholds=[50], max_features='sqrt')
+    tree = random_forest.Forest(s_images, s_labels, n_trees=50, training_size=0.8, n_features=1.0,
+                                split_method='thresholds', thresholds=[50], max_features='sqrt',
+                                min_feature_entropy=0.05)
 
     # tree = Tree.Tree(data=s_images, labels=s_labels, split_method='thresholds', thresholds=[50], max_features='sqrt')
 
@@ -60,6 +67,6 @@ if __name__ == '__main__':
 
     while True:
         which = int(input("Which img do you want to classify?: "))
-        print(" predict: ", tree.predict(images[which], verbose=True))
+        print(" predict: ", tree.predict(images[which]))
         print(" actual: ", labels[which])
         display_image(images[which])

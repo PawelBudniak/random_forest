@@ -10,10 +10,27 @@ def entropy(counts):
     return sum(-count / total * math.log(count / total) for count in counts)
 
 
+def sequence_entropy(labels, base=None):
+    value, counts = np.unique(labels, return_counts=True)
+    norm_counts = counts / counts.sum()
+    base = math.e if base is None else base
+    return -(norm_counts * np.log(norm_counts) / np.log(base)).sum()
+
+
+def remove_useless_features(data, features, epsilon=None):
+
+    if epsilon is None:
+        # if there's only one possible value for a feature it gives no information
+        # we can safely ignore it
+        return set(filter(lambda f: len(set(data[:, f])) != 1, features))
+    # if epsilon specified, remove features with entropy less than epsilon
+    return set(filter(lambda f: sequence_entropy(data[:, f]) > epsilon, features))
+
+
 class Tree:
     SPLIT_METHODS = {'mean', 'thresholds'}
 
-    def __init__(self, data, labels, *, features=None, split_method='mean', thresholds=None, max_features=None):
+    def __init__(self, data, labels, *, features=None, split_method='mean', thresholds=None, max_features=None, min_feature_entropy=None):
         """
               Mandatory args:
               :param data: training data
@@ -38,6 +55,7 @@ class Tree:
         if features is None:
             features = set(range(data.shape[1]))  # each column represents one pixel - one feature
         # self.labels = labels
+        features = remove_useless_features(data, features, epsilon=min_feature_entropy)
 
         if split_method not in self.SPLIT_METHODS:
             raise ValueError('Possible split methods: ', self.SPLIT_METHODS)

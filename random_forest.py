@@ -6,7 +6,7 @@ from collections import Counter
 
 class Forest:
     def __init__(self, data, labels, *, n_trees=10, training_size=1.0, n_features=1.0,
-                 split_method='mean', thresholds=None, max_features=None):
+                 split_method='mean', thresholds=None, max_features=None, min_feature_entropy=None):
 
         if isinstance(n_features, float):
             n_features = int(n_features * data.shape[1])
@@ -26,7 +26,8 @@ class Forest:
             labels_subset = labels[training_ids]
 
             new_tree = Tree.Tree(data=training_set, labels=labels_subset, features=set(feature_ids),
-                                 split_method=split_method, thresholds=thresholds, max_features=max_features)
+                                 split_method=split_method, thresholds=thresholds, max_features=max_features,
+                                 min_feature_entropy=min_feature_entropy)
             self.trees.append(new_tree)
 
     def predict(self, input, verbose=False):

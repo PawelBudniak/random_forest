@@ -27,7 +27,7 @@ def load_mnist(images_path, labels_path, byte_order='big'):
     # print(n_images, n_rows, n_cols)
 
     array_cols = n_rows * n_cols
-    images_array = np.empty(shape=(n_images, array_cols), dtype=int)
+    images_array = np.empty(shape=(n_images, array_cols), dtype=np.ubyte)
 
     for i in range(n_images):
         # list() to convert byte string to list of ints in range 0-255
