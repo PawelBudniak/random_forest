@@ -44,7 +44,7 @@ class Tree:
 
         self.root = self.id3(labels, features, data)
 
-        self.c45(data, labels, self.root)
+        # self.c45(data, labels, self.root)
 
     def best_split(self, labels, feature, data, split_method='mean'):
         """
@@ -172,38 +172,44 @@ class Tree:
 
         # if node is a leaf
         if node.label is not None:
-            return
+            return node
 
         # error values
-        for child, threshold in zip(node.children, node.thresholds):
-            new_ids = np.where(data[:, child.feature] < threshold)[0]
+        for i, (child, threshold) in enumerate(zip(node.children, node.thresholds)):
+
+            new_ids = np.where(data[:, node.feature] < threshold)[0]
             filtered_ids[len(filtered_ids):] = new_ids
 
-            self.c45(data, labels, child, filtered_ids)
-
-            test_data = data[new_ids]
-            test_labels = labels[new_ids]
+            node.children[i] = self.c45(data, labels, child, filtered_ids)
 
             if len(new_ids) > 0:
                 del filtered_ids[-len(new_ids):]
 
-        # calculate subtree error
-        st_err = test.error_rate(data, labels, node)
+        if len(filtered_ids) == 0:
+            return node
 
-        subtree_error = st_err + pow(st_err*(1-st_err), 0.5)/len(labels)
+        test_data = data[filtered_ids]
+        test_labels = labels[filtered_ids]
+
+        print("huj\n")
+        # calculate subtree error
+        st_err = test.error_rate(test_data, test_labels, node)
+
+        subtree_error = st_err + pow(st_err*(1-st_err), 0.5)/len(test_labels)
 
         # find most common label
-        label_counts = Counter(labels) # .most_common(0)[0][0]
+        label_counts = Counter(test_labels) # .most_common(0)[0][0]
         best_label = label_counts.most_common()[0][0]
 
-        lf_err = label_counts[best_label] / len(labels)
+        lf_err = label_counts[best_label] / len(test_labels)
 
-        leaf_error = lf_err + pow(lf_err*(1-lf_err), 0.5)/len(labels)
+        leaf_error = lf_err + pow(lf_err*(1-lf_err), 0.5)/len(test_labels)
 
         if subtree_error >= leaf_error:
-            node = TreeNode(label=best_label)
-        print("hej\n")
-        return
+            print("kurwa gicior taborecior\n")
+            return TreeNode(label=best_label)
+        print("*hej\n")
+        return node
 
              # leaf_ids = np.where(labels == best_label)[0]
 

@@ -29,9 +29,9 @@ if __name__ == '__main__':
 
     # test.k_fold_validation(s_images, s_labels, 4, random_forest.Forest)
 
-    tree = random_forest.Forest(s_images, s_labels, n_trees=2, training_size=0.8, n_features=0.9, split_method='thresholds', thresholds=[50])
+    # tree = random_forest.Forest(s_images, s_labels, n_trees=1, training_size=0.8, n_features=0.9, split_method='thresholds', thresholds=[50])
 
-    # tree = Tree.Tree(data=s_images, labels=s_labels, split_method='thresholds', thresholds=[20, 60])
+    tree = Tree.Tree(data=s_images, labels=s_labels, split_method='thresholds', thresholds=[20, 60])
 
     #
     # # s_images[s_images < 50] = 0
@@ -53,11 +53,11 @@ if __name__ == '__main__':
     #     if tree.predict(images[i]) == labels[i]:
     #         test_correct += 1
     #
-    print("train error:", test.error_rate(images[START: STOP], labels[START: STOP], tree))
-    print("test error: ", test.error_rate(test_images, test_labels, tree))
+    print("train error:", test.error_rate(images[START: STOP], labels[START: STOP], tree.root))
+    print("test error: ", test.error_rate(test_images, test_labels, tree.root))
 
     while True:
         which = int(input("Which img do you want to classify?: "))
-        print(" predict: ", tree.predict(images[which], verbose=True))
+        print(" predict: ", tree.predict(images[which]))
         print(" actual: ", labels[which])
         display_image(images[which])
