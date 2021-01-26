@@ -19,19 +19,21 @@ if __name__ == '__main__':
 
 
     START = 0
-    N_TRAIN = 4000
+    N_TRAIN = 10000
     STOP = START + N_TRAIN
     N_TEST = N_TRAIN // 6
     images, labels = load_mnist.load_mnist(TRAIN_IMG_PATH, TRAIN_LABEL_PATH)
     s_images = images[START:STOP]
     s_labels = labels[START:STOP]
     # test_images, test_labels = load_mnist.load_mnist(TEST_IMG_PATH, TEST_LABEL_PATH)
+    test_images = images[STOP: STOP + N_TEST]
+    test_labels = labels[STOP: STOP + N_TEST]
 
     # test.k_fold_validation(s_images, s_labels, 4, random_forest.Forest)
 
-    # tree = random_forest.Forest(s_images, s_labels, n_trees=50, training_size=0.8, n_features=0.9, split_method='thresholds', thresholds=[50])
+    tree = random_forest.Forest(s_images, s_labels, n_trees=30, training_size=0.8, n_features=1.0, split_method='thresholds', thresholds=[50], max_features='sqrt')
 
-    # tree = Tree.Tree(data=s_images, labels=s_labels, split_method='thresholds', thresholds=[20, 60])
+    # tree = Tree.Tree(data=s_images, labels=s_labels, split_method='thresholds', thresholds=[50], max_features='sqrt')
 
     #
     # # s_images[s_images < 50] = 0

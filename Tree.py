@@ -1,9 +1,8 @@
 import numpy as np
 from collections import Counter
-from collections import namedtuple
 import math
 import statistics
-import copy
+import random
 
 
 def entropy(counts):
@@ -52,7 +51,7 @@ class Tree:
             if self.thresholds[-1] != math.inf:
                 self.thresholds.append(math.inf)
 
-        if max_features =='sqrt':
+        if max_features == 'sqrt':
             self.max_features = math.sqrt(len(features))
         elif max_features is None:
             self.max_features = len(features)
@@ -119,12 +118,15 @@ class Tree:
 
         best_feature = None
         best_split = None
-        best_inf_gain = 0.0
+        best_inf_gain = -math.inf
         best_thresholds = None
 
         # find the best attribute to split on
 
-        for i, feature in enumerate(features):
+        rnd_features = list(features)
+        random.shuffle(rnd_features)
+
+        for i, feature in enumerate(rnd_features):
             # thresholds, split = self.best_split(labels, feature, data, 'mean')
             thresholds, split = self.best_split(labels, feature, data, self.split_method)
             inf = 0.0
@@ -136,7 +138,7 @@ class Tree:
 
             inf_gain = data_entropy - inf
 
-            if inf_gain >= best_inf_gain:
+            if inf_gain > best_inf_gain:
                 best_inf_gain = inf_gain
                 best_feature = feature
                 best_split = split
