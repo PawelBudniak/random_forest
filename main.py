@@ -3,6 +3,7 @@ import Tree
 import matplotlib.pyplot as plt
 import numpy as np
 import random_forest
+import test
 
 
 def display_image(pixels):
@@ -11,26 +12,21 @@ def display_image(pixels):
     plt.show()
 
 
-
 if __name__ == '__main__':
 
     START = 0
-    N_TRAIN = 4000
-    STOP = START+N_TRAIN
+    N_TRAIN = 2000
+    STOP = START + N_TRAIN
     N_TEST = N_TRAIN // 6
     images, labels = load_mnist.load_mnist('data/train-images.idx3-ubyte', 'data/train-labels.idx1-ubyte')
     s_images = images[START:STOP]
     s_labels = labels[START:STOP]
 
-    tree = random_forest.Forest(s_images, s_labels, n_trees=40, training_size=0.8, n_features=1.0)
+    # test.k_fold_validation(s_images, s_labels, 4, random_forest.Forest)
 
+    # tree = random_forest.Forest(s_images, s_labels, n_trees=40, training_size=0.8, n_features=1.0)
 
-
-    # tree = Tree.Tree(s_images, s_labels)
-    #
-    # print(" predict: ", tree.predict(images[START + 1]))
-    # print(" actual: ", labels[START + 1])
-    #
+    tree = Tree.Tree(data=s_images, labels=s_labels, split_method='thresholds', thresholds=[20, 60])
 
     #
     # # s_images[s_images < 50] = 0
@@ -40,20 +36,23 @@ if __name__ == '__main__':
     # # np.savetxt('imgs.csv', s_images.astype(int), fmt='%i', delimiter=',')
     # # np.savetxt('labels.csv', s_labels.astype(int), fmt='%i', delimiter=',')
 
-    train_correct = 0
-    for i in range(START, STOP):
-        if tree.predict(images[i]) == labels[i]:
-            train_correct += 1
-    test_correct = 0
-    for i in range(STOP, N_TEST + STOP):
-        if tree.predict(images[i]) == labels[i]:
-            test_correct += 1
+    # print('k-fold: ', test.k_fold_validation(s_images, s_labels, k=5, model_constructor=random_forest.Forest, n_trees=10,
+    #                                          training_size=0.8))
 
-    print("train error:", 1 - train_correct / N_TRAIN)
-    print("test error: ", 1 - test_correct / N_TEST)
+    # train_correct = 0
+    # for i in range(START, STOP):
+    #     if tree.predict(images[i]) == labels[i]:
+    #         train_correct += 1
+    # test_correct = 0
+    # for i in range(STOP, N_TEST + STOP):
+    #     if tree.predict(images[i]) == labels[i]:
+    #         test_correct += 1
+    #
+    print("train error:", test.error_rate(images[START: STOP], labels[START: STOP], tree))
+    print("test error: ", test.error_rate(images[STOP: N_TEST + STOP], labels[STOP: N_TEST + STOP], tree))
 
-    while True:
-        which = int(input("Which img do you want to classify?: "))
-        print(" predict: ", tree.predict(images[which], verbose=True))
-        print(" actual: ", labels[which])
-        display_image(images[which])
+    # while True:
+    #     which = int(input("Which img do you want to classify?: "))
+    #     print(" predict: ", tree.predict(images[which], verbose=True))
+    #     print(" actual: ", labels[which])
+    #     display_image(images[which])

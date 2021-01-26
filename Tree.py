@@ -13,23 +13,48 @@ def entropy(counts):
 
 class Tree:
 
-    def __init__(self, data, labels, features):
+    SPLIT_METHODS = {'mean', 'thresholds'}
+
+    def __init__(self, data, labels, *, features=None, split_method='mean', thresholds=None):
+        """
+              Mandatory args:
+              :param labels: data labels
+              :param features: default=None
+                     data features, if not specified they are computed as: set(range(data.shape[1]))
+              Optional kwargs:
+              :param data: training data
+              :param split_method: {'mean','thresholds'}, default = 'mean'
+                     how to split the data, if 'thresholds' chosen, the thresholds must be set in param thresholds
+
+              """
         self.data = data
-        self.features = features  # each column represents one pixel - one feature
+        self.features = features
+        if features is None:
+            self.features = set(range(data.shape[1]))  # each column represents one pixel - one feature
         self.labels = labels
+
+        if split_method not in self.SPLIT_METHODS:
+            raise ValueError('Possible split methods: ', self.SPLIT_METHODS)
+        self.split_method = split_method
+
+        if split_method == 'thresholds':
+            if thresholds is None:
+                raise RuntimeError('split_method=\'thresholds\' chosen without providing a threshold Iterable')
+            self.thresholds = sorted(thresholds)
+            # last threshold must be math inf
+            if self.thresholds[-1] != math.inf:
+                self.thresholds.append(math.inf)
 
         self.root = self.id3(labels, self.features, data)
 
-    def best_split(self, labels, feature, data, choice_method='mean', thresholds=None):
+    def best_split(self, labels, feature, data, split_method='mean'):
         """
 
         :param labels: data labels
         :param feature: feature to find a split on
         :param data: training data
-        :param choice_method: {'mean','thresholds'}, default = 'mean'
+        :param split_method: {'mean','thresholds'}, default = 'mean'
                how to split the data, if 'thresholds' chosen, they can be set in param thresholds
-        :param thresholds: Iterable -> int
-               if choice_method = 'thresholds', they can be specified in this parameter
 
         :return: tuple(float): thresholds, last threshold is always math.inf
                 ,tuple(np.array): indexes_of_data_split_on_thresholds
@@ -37,25 +62,34 @@ class Tree:
 
         """
 
-        if choice_method == 'mean':
-            # threshold = statistics.mean(data[:, feature])
-            threshold = 50
+        if split_method == 'mean':
+            threshold = statistics.mean(data[:, feature])
 
             idx_data_less = np.where(data[:, feature] < threshold)[0]
             idx_data_gte = np.where(data[:, feature] >= threshold)[0]
 
+            # last threshold must be math inf
             thresholds = np.array([threshold, math.inf])
             split = np.array([idx_data_less, idx_data_gte])
 
-            # find non-empty subsets
-            non_empty = [i for i in range(len(split)) if len(split[i]) > 0]
-            split = split[non_empty]
-            thresholds = thresholds[non_empty]
-            # if there is only one non-empty subset, the threshold to enter it is math.inf
-            if len(thresholds) == 1:
-                thresholds[0] = math.inf
+        if split_method == 'thresholds':
+            thresholds = np.array(self.thresholds)
+            split = []
+            for i, value in enumerate(thresholds):
+                prev_value = thresholds[i-1] if i != 0 else -math.inf
+                indices = np.where( (value > data[:, feature]) & (data[:, feature] >= prev_value) )[0]
+                split.append(indices)
+            split = np.array(split)
 
-            return thresholds, split
+        # find non-empty subsets
+        non_empty_ids = [i for i in range(len(split)) if len(split[i]) > 0]
+        split = split[non_empty_ids]
+        thresholds = thresholds[non_empty_ids]
+        # if there is only one non-empty subset, the threshold to enter it is math.inf
+        if len(thresholds) == 1:
+            thresholds[0] = math.inf
+
+        return thresholds, split
 
     def id3(self, labels, features, data):
 
@@ -81,7 +115,7 @@ class Tree:
 
         for feature in features:
             # thresholds, split = self.best_split(labels, feature, data, 'mean')
-            thresholds, split = self.best_split(labels, feature, data, 'mean')
+            thresholds, split = self.best_split(labels, feature, data, self.split_method)
             inf = 0.0
             for subset_ids in split:
                 proportion = len(subset_ids) / data.shape[0]

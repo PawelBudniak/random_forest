@@ -5,7 +5,7 @@ from collections import Counter
 
 
 class Forest:
-    def __init__(self, data, labels, n_trees, *, training_size, n_features=1.0):
+    def __init__(self, data, labels, *, n_trees=10, training_size=1.0, n_features=1.0):
 
         if isinstance(n_features, float):
             n_features = int(n_features * data.shape[1])
@@ -24,7 +24,7 @@ class Forest:
             # training_set = training_set[:, feature_ids]
             labels_subset = labels[training_ids]
 
-            new_tree = Tree.Tree(training_set, labels_subset, set(feature_ids))
+            new_tree = Tree.Tree(data=training_set, labels=labels_subset, features=set(feature_ids))
             self.trees.append(new_tree)
 
     def predict(self, input, verbose=False):
@@ -32,5 +32,3 @@ class Forest:
         if verbose:
             print(Counter(votes))
         return Counter(votes).most_common(1)[0][0]
-
-
