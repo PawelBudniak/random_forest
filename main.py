@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
 
     START = 0
-    N_TRAIN = 1000
+    N_TRAIN = 5000
     STOP = START + N_TRAIN
     N_TEST = N_TRAIN // 6
     images, labels = load_mnist.load_mnist(TRAIN_IMG_PATH, TRAIN_LABEL_PATH)

@@ -38,6 +38,8 @@ def error_rate(test_data, test_labels, model):
     for data, label in zip(test_data, test_labels):
         if model.predict(data) != label:
             wrong_predicts += 1
+    if len(test_data) == 0:
+        return 0
     return wrong_predicts / len(test_data)
 
 # train_correct = 0
