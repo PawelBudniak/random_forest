@@ -45,7 +45,7 @@ class Forest:
             training_size = int(training_size * data.shape[0])
 
         features = set(range(data.shape[1]))
-        features = list(Tree.remove_useless_features(data, features, min_feature_entropy))
+        features = list(Tree.filter_features(data, features, min_feature_entropy))
 
         # flat n_features values can't be allowed, only float values are accepted
         # because features are filtered and we don't know up front what their final size will be

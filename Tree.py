@@ -17,7 +17,7 @@ def sequence_entropy(labels, base=None):
     return -(norm_counts * np.log(norm_counts) / np.log(base)).sum()
 
 
-def remove_useless_features(data, features, epsilon=None):
+def filter_features(data, features, epsilon=None):
 
     if epsilon is None:
         # if there's only one possible value for a feature it gives no information
@@ -56,7 +56,7 @@ class Tree:
             features = set(range(data.shape[1]))  # each column represents one pixel - one feature
 
         if min_feature_entropy is not None:
-            features = remove_useless_features(data, features, epsilon=min_feature_entropy)
+            features = filter_features(data, features, epsilon=min_feature_entropy)
 
         if split_method not in self.SPLIT_METHODS:
             raise ValueError('Possible split methods: ', self.SPLIT_METHODS)
@@ -64,7 +64,7 @@ class Tree:
 
         if split_method in ('thresholds', 'choose_best'):
             if thresholds is None:
-                raise RuntimeError(f'split_method=\'{split_method}\' chosen without specifying thresholds parameter')
+                raise ValueError(f'split_method=\'{split_method}\' chosen without specifying thresholds parameter')
             self.thresholds = sorted(thresholds)
             # last threshold must be math inf
             if self.thresholds[-1] != math.inf:
@@ -74,7 +74,6 @@ class Tree:
             self.max_features = math.sqrt(len(features))
         elif max_features is None:
             self.max_features = len(features)
-
 
         self.root = self.id3(labels, features, data)
 
@@ -120,7 +119,7 @@ class Tree:
 
         if split_method == 'choose_best':
             if self.thresholds is None:
-                raise RuntimeError('No specified thresholds')
+                raise ValueError('No specified thresholds')
 
             thresholds, split, inf_gain = self.best_bin_split(labels, feature, data, data_entropy)
 
@@ -144,7 +143,7 @@ class Tree:
         Calculates the best possible binary split out of the possibilities in self.thresholds
         """
         if self.thresholds is None:
-            raise RuntimeError('No specified thresholds')
+            raise ValueError('No specified thresholds')
 
         thresholds = np.array(self.thresholds)
         best_split = None
