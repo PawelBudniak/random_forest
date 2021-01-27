@@ -58,6 +58,9 @@ if __name__ == '__main__':
 
             model, error, train_time = test.k_fold_model_and_error(s_images, s_labels, K_FOLD, random_forest.Forest,
                                                                    n_features=test_param_value)
+
+            # tree = RandomForestClassifier()
+            # tree.fit(s_images, s_labels)
             av_error += error / N_REPEAT
             av_train_time += train_time / N_REPEAT
             print('k-fold error: ', error)

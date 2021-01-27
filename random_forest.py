@@ -8,6 +8,9 @@ class Forest:
     def __init__(self, data, labels, *, n_trees=20, training_size=1.0, n_features=1.0,
                  split_method='thresholds', thresholds=None, max_features='sqrt', min_feature_entropy=0.001, c45=False):
         """
+        A random forest classifier, grows n_trees and predicts labels by having each of the trees vote on their
+        classification.
+
         Mandatory args:
         :param data: training data
         :param labels: data labels

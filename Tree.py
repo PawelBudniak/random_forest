@@ -33,7 +33,7 @@ class Tree:
 
     def __init__(self, data, labels, *, features=None, split_method='mean', thresholds=None, max_features=None,
                  min_feature_entropy=None, c45=False):
-        """
+        """"
         Mandatory args:
         :param data: training data
         :param labels: data labels
@@ -90,6 +90,7 @@ class Tree:
 
     def best_split(self, labels, feature, data, split_method='mean', data_entropy=None):
         """
+        Finds the best split point value on the given feature
         :param labels: data labels
         :param feature: feature to find a split on
         :param data: training data
@@ -266,11 +267,17 @@ class Tree:
             if feature_val < threshold:
                 return self.predict(input, node.children[i])
 
-        # # if feature_val doesn't satisfy any thresholds it means it's in the last child
-        # # e.g if it's a binary split on threshold = 3, a value 5 will be in the second child
-        # return self.predict(input, node.children[-1]
 
     def c45(self, data, labels, node, filtered_ids=None):
+        """
+        Replaces the subtree that has the specified node as its root with a leaf returning
+        the most common correct label, if doing that decreases the estimated test error rate.
+
+        :param data: 2D array of data that was used as the training dataset
+        :param labels: 1D array of correct labels corresponding to the training dataset
+        :param node: Tree node on which we execute the algorithm,
+        :return: returns the node after executing the algorithm
+        """
         # if root of the tree or subtree
         if filtered_ids is None:
             filtered_ids = []
