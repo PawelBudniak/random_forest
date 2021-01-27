@@ -70,9 +70,7 @@ class Forest:
             training_set = data[training_ids]
 
             # generate random feature subset without replacement
-            # n_features = math.floor(math.sqrt(squared_n_features))
             feature_ids = np.random.choice(features, size=n_features, replace=False)
-            # training_set = training_set[:, feature_ids]
             labels_subset = labels[training_ids]
 
             new_tree = Tree.Tree(data=training_set, labels=labels_subset, features=set(feature_ids),
