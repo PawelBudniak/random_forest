@@ -6,7 +6,7 @@ from collections import Counter
 
 class Forest:
     def __init__(self, data, labels, *, n_trees=10, training_size=1.0, n_features=1.0,
-                 split_method='mean', thresholds=None, max_features=None, min_feature_entropy=None):
+                 split_method='thresholds', thresholds=None, max_features='sqrt', min_feature_entropy=0.001, c45=False):
         """
         Mandatory args:
         :param data: training data
@@ -29,6 +29,8 @@ class Forest:
                 if 'choose_best', the best binary split is chosen from thresholds points
         :param thresholds: 1D array-like(float or int)
                 thresholds used for 'thresholds' and 'choose_best' split methods
+                if split_method is 'thresholds' or 'choose_best', and thresholds is None,
+                it's set to a one elemnent list [50]
         :param max_features: {'sqrt'}
                 if 'sqrt' -  max_features = sqrt(n_features)
                 if None   -  max_features = n_features
@@ -36,16 +38,21 @@ class Forest:
                 except if no valid split has been found, the search continues
         :param min_feature_entropy: float
                 for each feature column it's entropy is calculated
-                if it's below this threshold, that feature is discarded
-                if None - only features with entropy = 0.0 are discarded
+                if it's below or equal to this threshold, that feature is discarded
+                if None - no filtering is done
+        :param c45: bool
+                if true, apply c45 pruning on the trees
         """
 
+        if thresholds is None and split_method in ('thresholds', 'choose_best'):
+            thresholds = [50]
 
         if isinstance(training_size, float):
             training_size = int(training_size * data.shape[0])
 
-        features = set(range(data.shape[1]))
-        features = list(Tree.filter_features(data, features, min_feature_entropy))
+        if max_features is not None:
+            features = set(range(data.shape[1]))
+            features = list(Tree.filter_features(data, features, min_feature_entropy))
 
         # flat n_features values can't be allowed, only float values are accepted
         # because features are filtered and we don't know up front what their final size will be
@@ -67,7 +74,7 @@ class Forest:
 
             new_tree = Tree.Tree(data=training_set, labels=labels_subset, features=set(feature_ids),
                                  split_method=split_method, thresholds=thresholds, max_features=max_features,
-                                 min_feature_entropy=min_feature_entropy)
+                                 min_feature_entropy=min_feature_entropy, c45=c45)
             self.trees.append(new_tree)
 
     def predict(self, input, verbose=False):

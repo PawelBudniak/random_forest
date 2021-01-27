@@ -25,14 +25,14 @@ def filter_features(data, features, epsilon=None):
         # we can safely ignore it
         return set(filter(lambda f: len(set(data[:, f])) != 1, features))
     # if epsilon specified, remove features with entropy less than epsilon
-    return set(filter(lambda f: sequence_entropy(data[:, f]) > epsilon, features))
+    return set(filter(lambda f: sequence_entropy(data[:, f]) >= epsilon, features))
 
 
 class Tree:
     SPLIT_METHODS = {'mean', 'thresholds', 'choose_best'}
 
     def __init__(self, data, labels, *, features=None, split_method='mean', thresholds=None, max_features=None,
-                 min_feature_entropy=None):
+                 min_feature_entropy=None, c45=False):
         """
         Mandatory args:
         :param data: training data
@@ -56,7 +56,9 @@ class Tree:
         :param min_feature_entropy: float
                 for each feature column it's entropy is calculated
                 if it's below this threshold, that feature is discarded
-                if None - only features with entropy = 0.0 are discarded
+                if None - no features are discarded
+        :param c45: bool
+                if true, apply c45 pruning on the trees
         """
         if features is None:
             features = set(range(data.shape[1]))  # each column represents one pixel - one feature
@@ -83,7 +85,8 @@ class Tree:
 
         self.root = self.id3(labels, features, data)
 
-        self.c45(data, labels, self.root)
+        if c45:
+            self.c45(data, labels, self.root)
 
     def best_split(self, labels, feature, data, split_method='mean', data_entropy=None):
         """

@@ -1,4 +1,7 @@
 from statistics import mean
+from time import perf_counter_ns
+
+NS_TO_MS = 1000000
 
 
 def k_fold_validation(data, labels, k, model_constructor, *model_args, **model_kwargs):
@@ -21,14 +24,19 @@ def k_fold_validation(data, labels, k, model_constructor, *model_args, **model_k
 
 def k_fold_model_and_error(data, labels, k, model_constructor, *model_args, **model_kwargs):
     """
-    :return: tuple(model_constructor: model, float: error)
+    :return: tuple(model_constructor: model, float: error, float: train_time)
             model: model trained on the entire dataset
             error: model error estimated from k-fold cross validation
+            train_time: the time it took to train the model (without error computation)
     """
+    train_start = perf_counter_ns()
     model = model_constructor(data=data, labels=labels, *model_args, **model_kwargs)
+    train_end = perf_counter_ns()
+    train_time = train_end - train_start
+    train_time = train_time/NS_TO_MS
     error = k_fold_validation(data, labels, k, model_constructor, *model_args, **model_kwargs)
 
-    return model, error
+    return model, error, train_time
 
 
 def error_rate(test_data, test_labels, model):
