@@ -3,6 +3,8 @@ from collections import Counter
 import math
 import statistics
 import random
+import copy
+import test
 
 
 def entropy(counts):
@@ -78,6 +80,9 @@ class Tree:
         self.root = self.id3(labels, features, data)
 
     def best_split(self, labels, feature, data, split_method='mean', data_entropy=None):
+        # self.c45(data, labels, self.root)
+
+    def best_split(self, labels, feature, data, split_method='mean'):
         """
         :param labels: data labels
         :param feature: feature to find a split on
@@ -259,6 +264,65 @@ class Tree:
         # # e.g if it's a binary split on threshold = 3, a value 5 will be in the second child
         # return self.predict(input, node.children[-1]
 
+    def c45(self, data, labels, node, filtered_ids=None):
+        # if root of the tree or subtree
+        if filtered_ids is None:
+            filtered_ids = []
+
+        print('wjezdzam')
+
+        # if node is a leaf
+        if node.label is not None:
+            return node
+
+        if node == self.root:
+            test_data = data
+            test_labels = labels
+
+        last_thresh = 0
+        # error values
+        temp_data = np.copy(data)
+        temp_labels = np.copy(labels)
+        for i, (child, threshold) in enumerate(zip(node.children, node.thresholds)):
+
+            data = np.hstack((data, np.atleast_2d(labels).T))
+            # test_data = data[(last_thresh >= data[:, node.feature]) & (data[:, node.feature] < threshold)]
+            test_index = np.where(np.logical_and(data[:, node.feature] >= last_thresh, data[:, node.feature] < threshold))
+            test_data = data[test_index]
+            test_labels = np.transpose(test_data[:, -1])
+            test_data = test_data[:, :-1]
+            data = data[:, :-1]
+            # if not np.array_equal(data, temp_data) or not np.array_equal(labels, temp_labels):
+            #     exit(69)
+
+            node.children[i] = self.c45(test_data, test_labels, child, filtered_ids)
+            last_thresh = threshold
+
+        print("huj\n")
+        # calculate subtree error
+        if len(labels) == 0:
+            return node
+        st_err = test.error_rate(data, labels, node)
+
+        subtree_error = st_err + pow(st_err * (1 - st_err), 0.5) / len(labels)
+
+        # find most common label
+        label_counts = Counter(labels)  # .most_common(0)[0][0]
+        best_label = label_counts.most_common()[0][0]
+
+        lf_err = 1 - label_counts[best_label] / len(labels)
+
+        leaf_error = lf_err + pow(lf_err * (1 - lf_err), 0.5) / len(labels)
+
+        if subtree_error + 0.05 >= leaf_error:
+            print("kurwa gicior taborecior\n")
+            return TreeNode(label=best_label)
+        print("*hej\n")
+        return node
+
+
+        # leaf_ids = np.where(labels == best_label)[0]
+
 
 class TreeNode:
     def __init__(self, *, children=None, feature=None, thresholds=None, label=None):
@@ -269,3 +333,15 @@ class TreeNode:
 
     def new_child(self, child):
         self.children.append(child)
+
+    def predict(self, input, node=None):
+        if node is None:
+            node = self
+
+        if node.label is not None:
+            return node.label
+
+        feature_val = input[node.feature]
+        for i, threshold in enumerate(node.thresholds):
+            if feature_val < threshold:
+                return self.predict(input, node.children[i])
