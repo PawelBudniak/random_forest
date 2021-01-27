@@ -7,9 +7,39 @@ from collections import Counter
 class Forest:
     def __init__(self, data, labels, *, n_trees=10, training_size=1.0, n_features=1.0,
                  split_method='mean', thresholds=None, max_features=None, min_feature_entropy=None):
+        """
+        Mandatory args:
+        :param data: training data
+        :param labels: data labels
 
-        # if isinstance(n_features, float):
-        #     n_features = int(n_features * data.shape[1])
+        Optional kwargs:
+        :param n_trees: int
+                number of trees in the forest
+        :param training_size: int or float
+                number of training samples randomly chosen for each tree with replacement
+                if int - flat number
+                if float - number of samples = data.shape[0] * training_size
+        :param n_features: float
+                relative number of features randomly chosen without replacement used to train each tree
+                calculated after filtering with min_feature_entropy!
+        :param split_method: {'mean','thresholds', 'choose_best'}
+                How to split the data.
+                if 'mean' the split point is the mean of the feature's values
+                if 'thresholds' chosen, splits are made on all thresholds points
+                if 'choose_best', the best binary split is chosen from thresholds points
+        :param thresholds: 1D array-like(float or int)
+                thresholds used for 'thresholds' and 'choose_best' split methods
+        :param max_features: {'sqrt'}
+                if 'sqrt' -  max_features = sqrt(n_features)
+                if None   -  max_features = n_features
+                consider only up to max_features when searching for the best split
+                except if no valid split has been found, the search continues
+        :param min_feature_entropy: float
+                for each feature column it's entropy is calculated
+                if it's below this threshold, that feature is discarded
+                if None - only features with entropy = 0.0 are discarded
+        """
+
 
         if isinstance(training_size, float):
             training_size = int(training_size * data.shape[0])

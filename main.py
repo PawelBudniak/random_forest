@@ -19,7 +19,7 @@ if __name__ == '__main__':
     TEST_IMG_PATH, TEST_LABEL_PATH = 'data/t10k-images.idx3-ubyte', 'data/t10k-labels.idx1-ubyte'
 
     START = 0
-    N_TRAIN = 5000
+    N_TRAIN = 6000
     STOP = START + N_TRAIN
     N_TEST = N_TRAIN // 6
     images, labels = load_mnist.load_mnist(TRAIN_IMG_PATH, TRAIN_LABEL_PATH)
@@ -30,11 +30,6 @@ if __name__ == '__main__':
     test_labels = labels[STOP: STOP + N_TEST]
 
     # test.k_fold_validation(s_images, s_labels, 4, random_forest.Forest)
-    # fts = set(range(images.shape[1]))
-    # print('before: ', len(fts))
-    # fts = Tree.remove_useless_features(images, fts, epsilon=0.005)
-    # print('after: ', len(fts))
-    # exit(1)
 
     tree = random_forest.Forest(s_images, s_labels, n_trees=20, training_size=0.8, n_features=1.0,
                                 split_method='choose_best', thresholds=[10, 30, 50], max_features='sqrt',
@@ -43,26 +38,9 @@ if __name__ == '__main__':
 
     # tree = Tree.Tree(data=s_images, labels=s_labels, split_method='thresholds', thresholds=[50], max_features='sqrt')
 
-    #
-    # # s_images[s_images < 50] = 0
-    # # s_images[s_images >= 50] = 1
-    # #
-    # #
-    # # np.savetxt('imgs.csv', s_images.astype(int), fmt='%i', delimiter=',')
-    # # np.savetxt('labels.csv', s_labels.astype(int), fmt='%i', delimiter=',')
-
     # print('k-fold: ', test.k_fold_validation(s_images, s_labels, k=5, model_constructor=random_forest.Forest, n_trees=10,
     #                                          training_size=0.8))
 
-    # train_correct = 0
-    # for i in range(START, STOP):
-    #     if tree.predict(images[i]) == labels[i]:
-    #         train_correct += 1
-    # test_correct = 0
-    # for i in range(STOP, N_TEST + STOP):
-    #     if tree.predict(images[i]) == labels[i]:
-    #         test_correct += 1
-    #
     print("train error:", test.error_rate(images[START: STOP], labels[START: STOP], tree))
     print("test error: ", test.error_rate(test_images, test_labels, tree))
 
