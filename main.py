@@ -19,7 +19,7 @@ if __name__ == '__main__':
     TEST_IMG_PATH, TEST_LABEL_PATH = 'data/t10k-images.idx3-ubyte', 'data/t10k-labels.idx1-ubyte'
 
     START = 0
-    N_TRAIN = 20000
+    N_TRAIN = 5000
     STOP = START + N_TRAIN
     N_TEST = N_TRAIN // 6
     images, labels = load_mnist.load_mnist(TRAIN_IMG_PATH, TRAIN_LABEL_PATH)
@@ -36,9 +36,10 @@ if __name__ == '__main__':
     # print('after: ', len(fts))
     # exit(1)
 
-    tree = random_forest.Forest(s_images, s_labels, n_trees=50, training_size=0.8, n_features=1.0,
-                                split_method='thresholds', thresholds=[50], max_features='sqrt',
-                                min_feature_entropy=0.05)
+    tree = random_forest.Forest(s_images, s_labels, n_trees=20, training_size=0.8, n_features=1.0,
+                                split_method='choose_best', thresholds=[10, 30, 50], max_features='sqrt',
+                                min_feature_entropy=0.001)
+
 
     # tree = Tree.Tree(data=s_images, labels=s_labels, split_method='thresholds', thresholds=[50], max_features='sqrt')
 
