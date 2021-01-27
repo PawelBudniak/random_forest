@@ -3,7 +3,6 @@ from collections import Counter
 import math
 import statistics
 import random
-import copy
 import test
 
 
@@ -35,25 +34,30 @@ class Tree:
     def __init__(self, data, labels, *, features=None, split_method='mean', thresholds=None, max_features=None,
                  min_feature_entropy=None):
         """
-              Mandatory args:
-              :param data: training data
-              :param labels: data labels
+        Mandatory args:
+        :param data: training data
+        :param labels: data labels
 
-              Optional kwargs:
-              :param features: default=None
-                     data features, if not specified they are computed as: set(range(data.shape[1]))
-              :param split_method: {'mean','thresholds'}, default = 'mean'
-                     how to split the nodes, if 'thresholds' chosen, the thresholds must be set in param thresholds
-              :param thresholds: Iterable(float or int): default=None
-                     thresholds used to split the nodes
-              :param max_features: {'sqrt'}, default=None
-                     if 'sqrt' -  max_features = sqrt(n_features)
-                     if None   -  max_features = n_features
-                     consider only up to max_features when searching for the best split
-                     except if no valid split has been found, then the search continues
-
-              """
-
+        Optional kwargs:
+        :param features: default=None
+                data features, if not specified they are computed as: set(range(data.shape[1]))
+        :param split_method: {'mean','thresholds', 'choose_best'}
+                How to split the data.
+                if 'mean' the split point is the mean of the feature's values
+                if 'thresholds' chosen, splits are made on all thresholds points
+                if 'choose_best', the best binary split is chosen from thresholds points
+        :param thresholds: 1D array-like(float or int)
+                thresholds used for 'thresholds' and 'choose_best' split methods
+        :param max_features: {'sqrt'}
+                if 'sqrt' -  max_features = sqrt(n_features)
+                if None   -  max_features = n_features
+                consider only up to max_features when searching for the best split
+                except if no valid split has been found, the search continues
+        :param min_feature_entropy: float
+                for each feature column it's entropy is calculated
+                if it's below this threshold, that feature is discarded
+                if None - only features with entropy = 0.0 are discarded
+        """
         if features is None:
             features = set(range(data.shape[1]))  # each column represents one pixel - one feature
 
@@ -79,10 +83,9 @@ class Tree:
 
         self.root = self.id3(labels, features, data)
 
-    def best_split(self, labels, feature, data, split_method='mean', data_entropy=None):
-        # self.c45(data, labels, self.root)
+        self.c45(data, labels, self.root)
 
-    def best_split(self, labels, feature, data, split_method='mean'):
+    def best_split(self, labels, feature, data, split_method='mean', data_entropy=None):
         """
         :param labels: data labels
         :param feature: feature to find a split on
@@ -269,36 +272,25 @@ class Tree:
         if filtered_ids is None:
             filtered_ids = []
 
-        print('wjezdzam')
-
         # if node is a leaf
         if node.label is not None:
             return node
 
-        if node == self.root:
-            test_data = data
-            test_labels = labels
 
         last_thresh = 0
         # error values
-        temp_data = np.copy(data)
-        temp_labels = np.copy(labels)
         for i, (child, threshold) in enumerate(zip(node.children, node.thresholds)):
 
             data = np.hstack((data, np.atleast_2d(labels).T))
-            # test_data = data[(last_thresh >= data[:, node.feature]) & (data[:, node.feature] < threshold)]
             test_index = np.where(np.logical_and(data[:, node.feature] >= last_thresh, data[:, node.feature] < threshold))
             test_data = data[test_index]
             test_labels = np.transpose(test_data[:, -1])
             test_data = test_data[:, :-1]
             data = data[:, :-1]
-            # if not np.array_equal(data, temp_data) or not np.array_equal(labels, temp_labels):
-            #     exit(69)
 
             node.children[i] = self.c45(test_data, test_labels, child, filtered_ids)
             last_thresh = threshold
 
-        print("huj\n")
         # calculate subtree error
         if len(labels) == 0:
             return node
@@ -315,13 +307,9 @@ class Tree:
         leaf_error = lf_err + pow(lf_err * (1 - lf_err), 0.5) / len(labels)
 
         if subtree_error + 0.05 >= leaf_error:
-            print("kurwa gicior taborecior\n")
             return TreeNode(label=best_label)
-        print("*hej\n")
         return node
 
-
-        # leaf_ids = np.where(labels == best_label)[0]
 
 
 class TreeNode:

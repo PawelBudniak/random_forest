@@ -31,21 +31,28 @@ if __name__ == '__main__':
 
     # test.k_fold_validation(s_images, s_labels, 4, random_forest.Forest)
 
-    tree = random_forest.Forest(s_images, s_labels, n_trees=20, training_size=0.8, n_features=1.0,
-                                split_method='choose_best', thresholds=[10, 30, 50], max_features='sqrt',
-                                min_feature_entropy=0.001)
+    # tree = random_forest.Forest(s_images, s_labels, n_trees=20, training_size=0.8, n_features=1.0,
+    #                             split_method='choose_best', thresholds=[10, 30, 50], max_features='sqrt',
+    #                             min_feature_entropy=0.001)
+
+    model, error = test.k_fold_model_and_error(s_images, s_labels, 4, random_forest.Forest,
+                                               n_trees=20, training_size=0.8, n_features=1.0,
+                                               split_method='thresholds', thresholds=[50],
+                                               max_features='sqrt', min_feature_entropy=0.05
+                                               )
+    print('k-fold error: ', error)
 
 
-    # tree = Tree.Tree(data=s_images, labels=s_labels, split_method='thresholds', thresholds=[50], max_features='sqrt')
+    # tree = Tree.Tree(data=s_images, labels=s_labels, split_method='thresholds', thresholds=[50], max_features=None, min_feature_entropy=None)
 
     # print('k-fold: ', test.k_fold_validation(s_images, s_labels, k=5, model_constructor=random_forest.Forest, n_trees=10,
     #                                          training_size=0.8))
 
-    print("train error:", test.error_rate(images[START: STOP], labels[START: STOP], tree))
-    print("test error: ", test.error_rate(test_images, test_labels, tree))
+    print("train error:", test.error_rate(images[START: STOP], labels[START: STOP], model))
+    print("test error: ", test.error_rate(test_images, test_labels, model))
 
     while True:
         which = int(input("Which img do you want to classify?: "))
-        print(" predict: ", tree.predict(images[which]))
+        print(" predict: ", model.predict(images[which]))
         print(" actual: ", labels[which])
         display_image(images[which])

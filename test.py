@@ -16,8 +16,6 @@ def k_fold_validation(data, labels, k, model_constructor, *model_args, **model_k
         model = model_constructor(data=training_data, labels=training_labels, *model_args, **model_kwargs)
         errors.append(error_rate(test_data, test_labels, model))
 
-    # ewentualnie tutaj tez zwracanie modelu trenowanego na calych danych
-
     return mean(errors)
 
 
@@ -28,7 +26,7 @@ def k_fold_model_and_error(data, labels, k, model_constructor, *model_args, **mo
             error: model error estimated from k-fold cross validation
     """
     model = model_constructor(data=data, labels=labels, *model_args, **model_kwargs)
-    error = k_fold_validation(data, model, k, model_constructor, *model_args, **model_kwargs)
+    error = k_fold_validation(data, labels, k, model_constructor, *model_args, **model_kwargs)
 
     return model, error
 
