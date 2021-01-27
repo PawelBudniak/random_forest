@@ -48,7 +48,3 @@ def error_rate(test_data, test_labels, model):
         return 0
     return wrong_predicts / len(test_data)
 
-# train_correct = 0
-# for i in range(START, STOP):
-#     if tree.predict(images[i]) == labels[i]:
-#         train_correct += 1
