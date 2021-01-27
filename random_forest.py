@@ -5,7 +5,7 @@ from collections import Counter
 
 
 class Forest:
-    def __init__(self, data, labels, *, n_trees=10, training_size=1.0, n_features=1.0,
+    def __init__(self, data, labels, *, n_trees=20, training_size=1.0, n_features=1.0,
                  split_method='thresholds', thresholds=None, max_features='sqrt', min_feature_entropy=0.001, c45=False):
         """
         Mandatory args:
